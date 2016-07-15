@@ -1,0 +1,24 @@
+{
+  "name": "semaphore",
+  "version": "1.0.0",
+  "description": "Server than will controll the actions traffig in firebase",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alisson446/semaphore.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alisson446/semaphore/issues"
+  },
+  "homepage": "https://github.com/alisson446/semaphore#readme",
+  "dependencies": {
+    "dotenv": "^2.0.0",
+    "firebase": "^3.1.0"
+  }
+}
