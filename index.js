@@ -1,40 +1,38 @@
 'use strict';
 
+const createTaskObject = require('./src/firebase/tasks').createTaskObject;
 const addTask = require('./src/firebase/tasks').addTask;
 const addSubTask = require('./src/firebase/tasks').addSubTask;
 const completeTask = require('./src/firebase/tasks').completeTask;
 const clearTasks = require('./src/firebase/tasks').clearTasks;
 
 function createAndCompleteTasks() {
-	clearTasks();
-	let count = 1;
-	let tasksArr = [];
+	clearTasks()
+		.then(() => {
+			let count = 1;
+			let tasksArr = [];
+			const taskObject = createTaskObject();
 
-	const payload = {
-		id: undefined,
-	  path: undefined,
-	  subtasksCount: 0,
-	  completedSubtasksCount: 0,
-	  totalSubtasksCount: 0,
-	  totalCompletedSubtasksCount: 0,
-	  isCompleted: false
-	};
+			tasksArr.push(addTask(taskObject));
 
-	tasksArr.push(addTask(payload));
+			const interval = setInterval(() => {
+				if(count == 5) {
+					clearInterval(interval);
+				}
+				
+				const randomTaskIndex = Math.floor(Math.random() * tasksArr.length);
+				const selectedTask = tasksArr[randomTaskIndex];
 
-	const interval = setInterval(() => {
-		if(count == 5) {
-			clearInterval(interval);
-		}
-		
-		const taskIndexRandom = Math.floor(Math.random() * tasksArr.length);
-		const taskSelected = tasksArr[taskIndexRandom];
+				addSubTask(selectedTask, taskObject)
+					.then((payload) => {
+						tasksArr.push(payload);
+						return completeTask(selectedTask);
+					})
+					.catch((error) => console.log(error));
 
-		tasksArr.push(addSubTask(taskSelected, payload));
-		tasksArr.push(completeTask(taskSelected, taskIndexRandom));
-
-		count++;
-	}, 1000);
+				count++;
+			}, 1000);
+		});
 };
 
 createAndCompleteTasks();

@@ -4,22 +4,36 @@ const firebase = require('../../lib/_firebase');
 
 const firebaseRef = firebase.database().ref();
 
-const sumeCountProperty = function(workspaceId, pathArr, property1, property2) {
-	pathArr.forEach((taskId) => {
-		firebaseRef.child(`tasks/${workspaceId}/${taskId}`).transaction((task) => {
-			if (task) {
-				task[property1]++;
-				task[property2]++;
+const createTaskObject = function(task) {
+  return {
+    id: task.id || undefined,
+    path: task.path || undefined,
+    subtasksCount: task.subtasksCount || 0,
+    completedSubtasksCount: task.completedSubtasksCount || 0,
+    totalSubtasksCount: task.totalSubtasksCount || 0,
+    totalCompletedSubtasksCount: task.totalCompletedSubtasksCount || 0,
+    isCompleted: task.isCompleted || false
+  };
+};
 
-				return task;
-			} else {
-				return {
-					[property1]: 1,
-					[property2]: 1
-				};
-			}
-		});
-	});
+const sumCountProperty = function(workspaceId, pathArr, property1, property2) {
+  let sumPromises = pathArr.map((taskId) => (
+    firebaseRef.child(`tasks/${workspaceId}/${taskId}`).transaction((task) => {
+      if (task) {
+        task[property1]++;
+        task[property2]++;
+
+        return task;
+      } else {
+        return {
+          [property1]: 1,
+          [property2]: 1
+        };
+      }
+    })
+  ));
+
+  return Promise.all(sumPromises);
 };
 
 const addTask = function(payload) {
@@ -46,15 +60,17 @@ const addSubTask = function(parentTask, payload) {
   
   const path = `tasks/${workspaceId}/${taskId}`;
   
-  firebaseRef.child(path).set(payload)
-  	.then(() => {
-  		sumeCountProperty(workspaceId, pathArr, 'subtasksCount', 'totalSubtasksCount');
-  	});
-
-  return payload;
+  return new Promise((resolve, reject) => {
+    firebaseRef.child(path).set(payload)
+      .then(() => {
+        return sumCountProperty(workspaceId, pathArr, 'subtasksCount', 'totalSubtasksCount');
+      })
+      .then(resolve(payload))
+      .catch(reject);
+  });
 };
 
-const completeTask = function(task, taskIndexRandom) {
+const completeTask = function(task) {
 	const pathArr = task.path.split('|'); 
 	const workspaceId = pathArr[0];
 	
@@ -64,12 +80,14 @@ const completeTask = function(task, taskIndexRandom) {
 
 	const path = `tasks/${workspaceId}/${task.id}`;
 
-	firebaseRef.child(path).set(task)
-  	.then(() => {
-  		sumeCountProperty(workspaceId, pathArr, 'completedSubtasksCount', 'totalCompletedSubtasksCount');
-  	});
-
-  return task;
+  return new Promise((resolve, reject) => {
+    firebaseRef.child(path).set(task)
+      .then(() => {
+        return sumCountProperty(workspaceId, pathArr, 'completedSubtasksCount', 'totalCompletedSubtasksCount');
+      })
+      .then(resolve(task))
+      .catch(reject);
+  });
 };
 
 const moveTask = function() {
@@ -77,10 +95,15 @@ const moveTask = function() {
 };
 
 const clearTasks = function() {
-  firebaseRef.child('tasks').set(null);
+  return new Promise((resolve, reject) => {
+    firebaseRef.child('tasks').set(null)
+      .then(resolve)
+      .catch(reject);
+  });
 };	
 
 module.exports = {
+  createTaskObject: createTaskObject,
 	addTask: addTask,
 	addSubTask: addSubTask,
 	completeTask: completeTask,
