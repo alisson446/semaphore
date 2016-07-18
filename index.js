@@ -11,9 +11,8 @@ function createAndCompleteTasks() {
 		.then(() => {
 			let count = 1;
 			let tasksArr = [];
-			const taskObject = createTaskObject();
 
-			tasksArr.push(addTask(taskObject));
+			tasksArr.push(addTask(createTaskObject({})));
 
 			const interval = setInterval(() => {
 				if(count == 5) {
@@ -23,7 +22,7 @@ function createAndCompleteTasks() {
 				const randomTaskIndex = Math.floor(Math.random() * tasksArr.length);
 				const selectedTask = tasksArr[randomTaskIndex];
 
-				addSubTask(selectedTask, taskObject)
+				addSubTask(selectedTask, createTaskObject({}))
 					.then((payload) => {
 						tasksArr.push(payload);
 						return completeTask(selectedTask);

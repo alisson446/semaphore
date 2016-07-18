@@ -62,9 +62,9 @@ const addSubTask = function(parentTask, payload) {
   
   return new Promise((resolve, reject) => {
     firebaseRef.child(path).set(payload)
-      .then(() => {
-        return sumCountProperty(workspaceId, pathArr, 'subtasksCount', 'totalSubtasksCount');
-      })
+      .then(() => (
+        sumCountProperty(workspaceId, pathArr, 'subtasksCount', 'totalSubtasksCount')
+      ))
       .then(resolve(payload))
       .catch(reject);
   });
@@ -82,9 +82,9 @@ const completeTask = function(task) {
 
   return new Promise((resolve, reject) => {
     firebaseRef.child(path).set(task)
-      .then(() => {
-        return sumCountProperty(workspaceId, pathArr, 'completedSubtasksCount', 'totalCompletedSubtasksCount');
-      })
+      .then(() => (
+        sumCountProperty(workspaceId, pathArr, 'completedSubtasksCount', 'totalCompletedSubtasksCount')
+      ))
       .then(resolve(task))
       .catch(reject);
   });
